@@ -2,11 +2,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	  <Authors>53m1k0l0n, rennerdo30</Authors>
-	  <Version>2.0.0.2</Version>
+	  <Version>2.0.0.3</Version>
 	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <PropertyGroup>
-	  <TargetFramework>net7.0</TargetFramework>
+	  <TargetFramework>net8.0</TargetFramework>
 	  <Platforms>x64</Platforms>
 	  <Nullable>enable</Nullable>
 	  <LangVersion>latest</LangVersion>
@@ -17,45 +17,45 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+	<DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="2.1.12" />
-    <Reference Include="FFXIVClientStructs">
-      <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Dalamud">
-      <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="ImGui.NET">
-      <HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="ImGuiScene">
-      <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Lumina">
-      <HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Lumina.Excel">
-      <HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+	<PackageReference Include="DalamudPackager" Version="2.1.13" />
+	<Reference Include="FFXIVClientStructs">
+	  <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
+	<Reference Include="Newtonsoft.Json">
+	  <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
+	<Reference Include="Dalamud">
+	  <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
+	<Reference Include="ImGui.NET">
+	  <HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
+	<Reference Include="ImGuiScene">
+	  <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
+	<Reference Include="Lumina">
+	  <HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
+	<Reference Include="Lumina.Excel">
+	  <HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
+	  <Private>false</Private>
+	</Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Images\icon.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+	<None Update="Images\icon.png">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
   </ItemGroup>
 	
 </Project>

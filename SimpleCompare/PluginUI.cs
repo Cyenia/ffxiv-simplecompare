@@ -128,11 +128,11 @@ namespace SimpleCompare
                 for (int i = 0; i < count; i++)
                 {
                     var intentoryItem = equippedItems->Items[i];
-                    var item = Service.Data.GetExcelSheet<Item>().GetRow(intentoryItem.ItemID);
+                    var item = Service.Data.GetExcelSheet<Item>().GetRow(intentoryItem.ItemId);
 
                     if (inventoryType == GetInventoryType(item))
                     {
-                        items.Add(new InvItem(item, (intentoryItem.Flags & ItemFlags.HQ) == ItemFlags.HQ));
+                        items.Add(new InvItem(item, (intentoryItem.Flags & ItemFlags.HighQuality) == ItemFlags.HighQuality));
                     }
                 }
 

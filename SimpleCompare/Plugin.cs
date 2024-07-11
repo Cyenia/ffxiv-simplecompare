@@ -1,11 +1,6 @@
-﻿using Dalamud.Game.Command;
-using Dalamud.IoC;
-using Dalamud.Logging;
-using Dalamud.Plugin;
-using Lumina.Excel.GeneratedSheets;
-using System;
-using System.Runtime.InteropServices;
+﻿using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Lumina.Excel.GeneratedSheets;
 
 namespace SimpleCompare
 {
@@ -15,14 +10,14 @@ namespace SimpleCompare
 
         private const string commandName = "/simplecompare";
 
-        private DalamudPluginInterface PluginInterface { get; init; }
+        private IDalamudPluginInterface PluginInterface { get; init; }
         private ICommandManager CommandManager { get; init; }
         private Configuration Configuration { get; init; }
         private PluginUI PluginUi { get; init; }
 
         public Plugin(
-            [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
-            [RequiredVersion("1.0")] ICommandManager commandManager)
+            IDalamudPluginInterface pluginInterface,
+            ICommandManager commandManager)
         {
             this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
@@ -84,7 +79,7 @@ namespace SimpleCompare
                 }
                 catch (System.Exception ex)
                 {
-                    PluginLog.LogFatal(ex.ToString());
+                    Service.PluginLog.Fatal(ex.ToString());
                 }
             }
         }
