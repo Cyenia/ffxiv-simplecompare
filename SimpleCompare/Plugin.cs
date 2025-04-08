@@ -1,77 +1,62 @@
 ﻿using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using Lumina.Excel.Sheets;
 
-namespace SimpleCompare
+namespace SimpleCompare;
+
+public sealed class Plugin : IDalamudPlugin
 {
-    public sealed class Plugin : IDalamudPlugin
+    private IDalamudPluginInterface PluginInterface { get; init; }
+    private PluginUI PluginUi { get; init; }
+
+    public Plugin(IDalamudPluginInterface pluginInterface)
     {
-        public string Name => "SimpleCompare";
+        PluginInterface = pluginInterface;
 
-        private const string commandName = "/simplecompare";
+        pluginInterface.Create<Service>();
+        PluginUi = new PluginUI();
 
-        private IDalamudPluginInterface PluginInterface { get; init; }
-        private ICommandManager CommandManager { get; init; }
-        private PluginUI PluginUi { get; init; }
+        PluginInterface.UiBuilder.Draw += DrawUI;
+        Service.GameGui.HoveredItemChanged += OnItemHover;
+    }
 
-        public Plugin(
-            IDalamudPluginInterface pluginInterface,
-            ICommandManager commandManager)
+    private void OnItemHover(object? sender, ulong itemId)
+    {
+        if (itemId > 2_000_000)
         {
-            this.PluginInterface = pluginInterface;
-            this.CommandManager = commandManager;
-
-            pluginInterface.Create<Service>();
-            this.PluginUi = new PluginUI();
-
-            this.PluginInterface.UiBuilder.Draw += DrawUI;
-
-            
-            Service.GameGui.HoveredItemChanged += this.OnItemHover;
+            PluginUi.InvItem = null;
+            return;
         }
 
-        private void OnItemHover(object? sender, ulong itemId)
+        var wasHq = false;
+        if (itemId > 1_000_000)
         {
-            if (itemId > 2_000_000)
-            {
-                this.PluginUi.InvItem = null;
-                return;
-            }
-
-            bool wasHQ = false;
-            if (itemId > 1_000_000)
-            {
-                wasHQ = true;
-                itemId -= 1_000_000;
-            }
-
-            var item = Service.Data.GetExcelSheet<Item>().GetRow((uint)itemId);
-
-            this.PluginUi.InvItem = new InvItem(item, wasHQ);
+            wasHq = true;
+            itemId -= 1_000_000;
         }
 
-        public void Dispose()
+        var item = Service.Data.GetExcelSheet<Item>().GetRow((uint)itemId);
+
+        PluginUi.InvItem = new InvItem(item, wasHq);
+    }
+
+    public void Dispose()
+    {
+        PluginUi.Dispose();
+        Service.GameGui.HoveredItemChanged -= OnItemHover;
+    }
+
+    private void DrawUI()
+    {
+        if (!Service.ClientState.IsLoggedIn) return;
+
+        // dont crash game!
+        try
         {
-            this.PluginUi.Dispose();
-            Service.GameGui.HoveredItemChanged -= this.OnItemHover;
+            PluginUi.Draw();
         }
-
-
-        private void DrawUI()
+        catch (System.Exception ex)
         {
-            if (Service.ClientState != null && Service.ClientState.IsLoggedIn)
-            {
-                // dont crash game!
-                try
-                {
-                    this.PluginUi.Draw();
-                }
-                catch (System.Exception ex)
-                {
-                    Service.PluginLog.Fatal(ex.ToString());
-                }
-            }
+            Service.PluginLog.Fatal(ex.ToString());
         }
-
     }
 }
