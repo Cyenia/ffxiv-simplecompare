@@ -24,8 +24,6 @@ namespace SimpleCompare
 
     class PluginUI : IDisposable
     {
-        private Configuration configuration;
-
         private bool visible = false;
         public bool Visible
         {
@@ -34,11 +32,6 @@ namespace SimpleCompare
         }
 
         internal InvItem? InvItem { get; set; }
-
-        public PluginUI(Configuration configuration)
-        {
-            this.configuration = configuration;
-        }
 
         public void Dispose()
         {

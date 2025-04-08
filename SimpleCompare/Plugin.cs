@@ -12,7 +12,6 @@ namespace SimpleCompare
 
         private IDalamudPluginInterface PluginInterface { get; init; }
         private ICommandManager CommandManager { get; init; }
-        private Configuration Configuration { get; init; }
         private PluginUI PluginUi { get; init; }
 
         public Plugin(
@@ -23,12 +22,7 @@ namespace SimpleCompare
             this.CommandManager = commandManager;
 
             pluginInterface.Create<Service>();
-
-
-            this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            this.Configuration.Initialize(this.PluginInterface);
-
-            this.PluginUi = new PluginUI(this.Configuration);
+            this.PluginUi = new PluginUI();
 
             this.PluginInterface.UiBuilder.Draw += DrawUI;
 
