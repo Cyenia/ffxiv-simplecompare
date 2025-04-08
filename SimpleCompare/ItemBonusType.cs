@@ -56,16 +56,4 @@ namespace SimpleCompare
         [Description("Magic Damage")]
         MAGIC_DAMAGE = 13,
     }
-
-    internal static class ItemBonusTypeExtensions
-    {
-        internal static string ToDescriptionString(this ItemBonusType val)
-        {
-            DescriptionAttribute[] attributes = (DescriptionAttribute[])val
-               .GetType()
-               .GetField(val.ToString())
-               .GetCustomAttributes(typeof(DescriptionAttribute), false);
-            return attributes.Length > 0 ? attributes[0].Description : string.Empty;
-        }
-    }
 }

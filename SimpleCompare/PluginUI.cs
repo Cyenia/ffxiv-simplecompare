@@ -5,6 +5,7 @@ using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Dalamud.Utility;
 using static FFXIVClientStructs.FFXIV.Client.Game.InventoryItem;
 
 namespace SimpleCompare
@@ -269,16 +270,9 @@ namespace SimpleCompare
             }
         }
 
-        private string BaseParamToName(byte baseParam)
+        private static string BaseParamToName(uint baseParam)
         {
-            if (Enum.IsDefined(typeof(ItemBonusType), baseParam))
-            {
-                ItemBonusType type = (ItemBonusType)baseParam;
-                return type.ToDescriptionString();
-
-            }
-
-            return $"<unknown {baseParam}>";
+            return Service.Data.GetExcelSheet<BaseParam>().GetRow(baseParam).Name.ExtractText().StripSoftHyphen();
         }
 
         private InventoryType GetInventoryType(Item item)
