@@ -16,22 +16,24 @@ namespace SimpleCompare
         MIND = 5,
         [Description("Piety")]
         PIETY = 6,
+        [Description("GP")]
+        GP = 10,
         [Description("CP")]
         CP = 11,
         [Description("Tenacity")]
         TENACITY = 19,
-        [Description("Critical Hit")]
-        CRITICAL_HIT = 20,
         [Description("Direct Hit Rate")]
         DIRECT_HIT_RATE = 22,
+        [Description("Critical Hit")]
+        CRITICAL_HIT = 27,
         [Description("Determination")]
         DETERMINATION = 44,
         [Description("Skill Speed")]
         SKILL_SPEED = 45,
         [Description("Spell Speed")]
         SPELL_SPEED = 46,
-        [Description("Craftmanship")]
-        CRAFTMANSHIP = 70,
+        [Description("Craftsmanship")]
+        CRAFTSMANSHIP = 70,
         [Description("Control")]
         CONTROL = 71,
         [Description("Gathering")]
@@ -53,10 +55,6 @@ namespace SimpleCompare
         PHYSICAL_DAMAGE = 12,
         [Description("Magic Damage")]
         MAGIC_DAMAGE = 13,
-
-        [Description("Critical Hit")]
-        CRITICAL_HIT_2 = 27,
-
     }
 
     internal static class ItemBonusTypeExtensions
