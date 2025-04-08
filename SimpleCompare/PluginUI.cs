@@ -1,7 +1,7 @@
 ﻿using Dalamud.Interface.Colors;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -33,7 +33,7 @@ namespace SimpleCompare
             set { this.visible = value; }
         }
 
-        internal InvItem InvItem { get; set; }
+        internal InvItem? InvItem { get; set; }
 
         public PluginUI(Configuration configuration)
         {
@@ -55,17 +55,7 @@ namespace SimpleCompare
             }
 
             var hoveredItem = this.InvItem;
-            if (hoveredItem == null || hoveredItem.Item == null)
-            {
-                return;
-            }
-
-
-            var equipSlot = hoveredItem.Item.EquipSlotCategory;
-            if (equipSlot == null)
-            {
-                return;
-            }
+            if (hoveredItem == null) return;
 
             var inventoryType = GetInventoryType(hoveredItem.Item);
             if (inventoryType == InventoryType.ArmorySoulCrystal || inventoryType == InventoryType.Inventory1)
@@ -81,7 +71,7 @@ namespace SimpleCompare
                     for (int i = 0; i < equippedItems.Count; i++)
                     {
                         var item = equippedItems[i];
-                        ImGui.Text($"Equipped: {item.Item.Name} (iLvl {item.Item.LevelItem.Row}):");
+                        ImGui.Text($"Equipped: {item.Item.Name} (iLvl {item.Item.LevelItem.RowId}):");
                         DrawItemCompareEquipped(item, hoveredItem);
                         if (i + 1 < equippedItems.Count)
                         {
@@ -100,7 +90,7 @@ namespace SimpleCompare
                     for (int i = 0; i < equippedItems.Count; i++)
                     {
                         var item = equippedItems[i];
-                        ImGui.Text($"{hoveredItem.Item.Name} (iLvl {hoveredItem.Item.LevelItem.Row}):");
+                        ImGui.Text($"{hoveredItem.Item.Name} (iLvl {hoveredItem.Item.LevelItem.RowId}):");
                         DrawItemCompareHovered(item, hoveredItem);
 
                         if (i + 1 < equippedItems.Count)
@@ -249,10 +239,9 @@ namespace SimpleCompare
             HashSet<byte> bonusTypes = new HashSet<byte>();
             Dictionary<byte, short> bonusMap = new Dictionary<byte, short>();
 
-            foreach (var bonus in invItem.Item.UnkData59)
+            for (var i = 0; i < invItem.Item.BaseParam.Count; i++)
             {
-                bonusMap[bonus.BaseParam] = bonus.BaseParamValue;
-                bonusTypes.Add(bonus.BaseParam);
+                bonusMap[(byte)invItem.Item.BaseParam[i].RowId] = invItem.Item.BaseParamValue[i];
             }
 
             if (!invItem.IsHQ)
@@ -263,17 +252,16 @@ namespace SimpleCompare
 
 
             Dictionary<byte, short> result = new Dictionary<byte, short>();
-            foreach (var bonus in invItem.Item.UnkData73)
+            for (var i = 0; i < invItem.Item.BaseParamSpecial.Count; i++)
             {
-                if (bonusMap.ContainsKey(bonus.BaseParamSpecial))
+                if (bonusMap.TryGetValue((byte)invItem.Item.BaseParamSpecial[i].RowId, out var baseVal))
                 {
-                    var baseVal = bonusMap[bonus.BaseParamSpecial];
-                    baseVal += bonus.BaseParamValueSpecial;
-                    result[bonus.BaseParamSpecial] = baseVal;
+                    baseVal += invItem.Item.BaseParamValueSpecial[i];
+                    result[(byte)invItem.Item.BaseParamSpecial[i].RowId] = baseVal;
                 }
                 else
                 {
-                    result[bonus.BaseParamSpecial] = bonus.BaseParamValueSpecial;
+                    result[(byte)invItem.Item.BaseParamSpecial[i].RowId] = invItem.Item.BaseParamValueSpecial[i];
                 }
             }
 

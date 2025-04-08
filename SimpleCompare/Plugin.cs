@@ -1,6 +1,6 @@
 ﻿using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace SimpleCompare
 {
@@ -52,11 +52,6 @@ namespace SimpleCompare
             }
 
             var item = Service.Data.GetExcelSheet<Item>().GetRow((uint)itemId);
-            if (item == null)
-            {
-                this.PluginUi.InvItem = null;
-                return;
-            }
 
             this.PluginUi.InvItem = new InvItem(item, wasHQ);
         }
