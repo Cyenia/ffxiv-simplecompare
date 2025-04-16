@@ -4,6 +4,7 @@ using ImGuiNET;
 using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Dalamud.Utility;
 using static FFXIVClientStructs.FFXIV.Client.Game.InventoryItem;
@@ -46,7 +47,17 @@ internal partial class PluginUI : IDisposable
         var equippedItems = GetEquippedItemsByType(inventoryType);
         if (equippedItems.Count <= 0) return;
 
-        if (ImGui.Begin("SimpleCompare", ref _visible, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus))
+        var windowFlags = ImGuiWindowFlags.AlwaysAutoResize |
+                          ImGuiWindowFlags.NoDecoration |
+                          ImGuiWindowFlags.NoBringToFrontOnFocus |
+                          ImGuiWindowFlags.NoFocusOnAppearing |
+                          ImGuiWindowFlags.NoNavFocus;
+
+        var mousePos = ImGui.GetMousePos();
+
+        // Anchor top right corner of window to the mouse
+        ImGui.SetNextWindowPos(mousePos - new Vector2(25.0f, 0.0f), ImGuiCond.Always, new Vector2(1.0f, 0.0f));
+        if (ImGui.Begin("SimpleCompare", ref _visible, windowFlags))
         {
             for (var i = 0; i < equippedItems.Count; i++)
             {
@@ -61,16 +72,10 @@ internal partial class PluginUI : IDisposable
                 }
             }
         }
+        ImGui.End();
 
-        var size = ImGui.GetWindowSize();
-        var mousePos = ImGui.GetMousePos();
-        mousePos.X -= size.X + 25;
-        ImGui.SetWindowPos(mousePos, ImGuiCond.Always);
-
-        if (ImGui.Begin("SimpleCompare2", ref _visible,
-                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDecoration |
-                ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoFocusOnAppearing |
-                ImGuiWindowFlags.NoNavFocus))
+        ImGui.SetNextWindowPos(mousePos + new Vector2(25.0f, 0.0f), ImGuiCond.Always);
+        if (ImGui.Begin("SimpleCompare2", ref _visible, windowFlags))
         {
             for (var i = 0; i < equippedItems.Count; i++)
             {
@@ -85,10 +90,6 @@ internal partial class PluginUI : IDisposable
                 }
             }
         }
-
-        mousePos.X += size.X + 50;
-        ImGui.SetWindowPos(mousePos, ImGuiCond.Always);
-
         ImGui.End();
     }
 
