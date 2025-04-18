@@ -204,73 +204,32 @@ internal class PluginUI : IDisposable
 
     private static InventoryType GetInventoryType(Item item)
     {
-        if (item.EquipSlotCategory.Value.MainHand == 1)
+        var slotMapping = new (Func<EquipSlotCategory, int> selector, InventoryType type)[]
         {
-            return InventoryType.ArmoryMainHand;
+            (c => c.MainHand, InventoryType.ArmoryMainHand),
+            (c => c.OffHand, InventoryType.ArmoryOffHand),
+            (c => c.Head, InventoryType.ArmoryHead),
+            (c => c.Body, InventoryType.ArmoryBody),
+            (c => c.Gloves, InventoryType.ArmoryHands),
+            (c => c.Waist, InventoryType.ArmoryWaist),
+            (c => c.Legs, InventoryType.ArmoryLegs),
+            (c => c.Feet, InventoryType.ArmoryFeets),
+            (c => c.Ears, InventoryType.ArmoryEar),
+            (c => c.Neck, InventoryType.ArmoryNeck),
+            (c => c.Wrists, InventoryType.ArmoryWrist),
+            (c => c.FingerL, InventoryType.ArmoryRings),
+            (c => c.FingerR, InventoryType.ArmoryRings),
+            (c => c.SoulCrystal, InventoryType.ArmorySoulCrystal)
+        };
+
+        var category = item.EquipSlotCategory.Value;
+
+        foreach (var (selector, type) in slotMapping)
+        {
+            if (selector(category) == 1)
+                return type;
         }
 
-        if (item.EquipSlotCategory.Value.OffHand == 1)
-        {
-            return InventoryType.ArmoryOffHand;
-        }
-
-        if (item.EquipSlotCategory.Value.Head == 1)
-        {
-            return InventoryType.ArmoryHead;
-        }
-
-        if (item.EquipSlotCategory.Value.Body == 1)
-        {
-            return InventoryType.ArmoryBody;
-        }
-
-        if (item.EquipSlotCategory.Value.Gloves == 1)
-        {
-            return InventoryType.ArmoryHands;
-        }
-
-        if (item.EquipSlotCategory.Value.Waist == 1)
-        {
-            return InventoryType.ArmoryWaist;
-        }
-
-        if (item.EquipSlotCategory.Value.Legs == 1)
-        {
-            return InventoryType.ArmoryLegs;
-        }
-
-        if (item.EquipSlotCategory.Value.Feet == 1)
-        {
-            return InventoryType.ArmoryFeets;
-        }
-
-        if (item.EquipSlotCategory.Value.Ears == 1)
-        {
-            return InventoryType.ArmoryEar;
-        }
-
-        if (item.EquipSlotCategory.Value.Neck == 1)
-        {
-            return InventoryType.ArmoryNeck;
-        }
-
-        if (item.EquipSlotCategory.Value.Wrists == 1)
-        {
-            return InventoryType.ArmoryWrist;
-        }
-
-        if (item.EquipSlotCategory.Value.FingerL == 1)
-        {
-            return InventoryType.ArmoryRings;
-        }
-
-        if (item.EquipSlotCategory.Value.FingerR == 1)
-        {
-            return InventoryType.ArmoryRings;
-        }
-
-        return item.EquipSlotCategory.Value.SoulCrystal == 1
-            ? InventoryType.ArmorySoulCrystal
-            : InventoryType.Inventory1;
+        return InventoryType.Inventory1;
     }
 }
