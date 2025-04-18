@@ -4,6 +4,7 @@ using ImGuiNET;
 using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Dalamud.Utility;
 using static FFXIVClientStructs.FFXIV.Client.Game.InventoryItem;
@@ -19,6 +20,10 @@ internal class InvItem(Item item, bool isHq)
 internal partial class PluginUI : IDisposable
 {
     private bool _visible;
+
+    private const ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDecoration |
+                                                 ImGuiWindowFlags.NoBringToFrontOnFocus |
+                                                 ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus;
 
     internal InvItem? InvItem { get; set; }
 
@@ -46,50 +51,46 @@ internal partial class PluginUI : IDisposable
         var equippedItems = GetEquippedItemsByType(inventoryType);
         if (equippedItems.Count <= 0) return;
 
-        if (ImGui.Begin("SimpleCompare", ref _visible, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNavFocus))
-        {
-            for (var i = 0; i < equippedItems.Count; i++)
-            {
-                var item = equippedItems[i];
-
-                ImGui.Text(
-                    $"Equipped: {item.Item.Name.ExtractText().StripSoftHyphen()} (iLvl {item.Item.LevelItem.RowId}):");
-                DrawItemCompareEquipped(item, hoveredItem);
-                if (i + 1 < equippedItems.Count)
-                {
-                    ImGui.Separator();
-                }
-            }
-        }
+        DrawItemList("SimpleCompare", hoveredItem, equippedItems, false);
 
         var size = ImGui.GetWindowSize();
         var mousePos = ImGui.GetMousePos();
         mousePos.X -= size.X + 25;
         ImGui.SetWindowPos(mousePos, ImGuiCond.Always);
 
-        if (ImGui.Begin("SimpleCompare2", ref _visible,
-                ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDecoration |
-                ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoFocusOnAppearing |
-                ImGuiWindowFlags.NoNavFocus))
-        {
-            for (var i = 0; i < equippedItems.Count; i++)
-            {
-                var item = equippedItems[i];
-                ImGui.Text(
-                    $"{hoveredItem.Item.Name.ExtractText().StripSoftHyphen()} (iLvl {hoveredItem.Item.LevelItem.RowId}):");
-                DrawItemCompareHovered(item, hoveredItem);
-
-                if (i + 1 < equippedItems.Count)
-                {
-                    ImGui.Separator();
-                }
-            }
-        }
+        DrawItemList("SimpleCompare2", hoveredItem, equippedItems, true);
 
         mousePos.X += size.X + 50;
         ImGui.SetWindowPos(mousePos, ImGuiCond.Always);
 
         ImGui.End();
+    }
+    
+    private void DrawItemList(string windowName, InvItem hoveredItem, List<InvItem> equippedItems, bool hovered)
+    {
+        if (!ImGui.Begin(windowName, ref _visible, WindowFlags)) return;
+
+        for (var i = 0; i < equippedItems.Count; i++)
+        {
+            var item = equippedItems[i];
+            var iLvlDiff = hovered
+                ? (int)(hoveredItem.Item.LevelItem.RowId - item.Item.LevelItem.RowId)
+                : (int)(item.Item.LevelItem.RowId - hoveredItem.Item.LevelItem.RowId);
+
+            ImGui.Text(hovered
+                ? $"{hoveredItem.Item.Name.ExtractText().StripSoftHyphen()}"
+                : $"Equipped: {item.Item.Name.ExtractText().StripSoftHyphen()}");
+            ImGui.SameLine();
+            TextColored($"(iLvl {(hovered ? hoveredItem : item).Item.LevelItem.RowId})", iLvlDiff);
+
+            if (hovered)
+                DrawItemCompare(hoveredItem, item, false);
+            else
+                DrawItemCompare(item, hoveredItem);
+
+            if (i + 1 < equippedItems.Count)
+                ImGui.Separator();
+        }
     }
 
     private static List<InvItem> GetEquippedItemsByType(InventoryType inventoryType)
@@ -115,19 +116,16 @@ internal partial class PluginUI : IDisposable
         return items;
     }
 
-    private static void DrawItemCompareEquipped(InvItem itemA, InvItem itemB)
+    private static void DrawItemCompare(InvItem itemA, InvItem itemB, bool equipped = true)
     {
-        DrawStat("Materia", itemA.Item.MateriaSlotCount - itemB.Item.MateriaSlotCount);
+        DrawStat("Materia", itemB.Item.MateriaSlotCount - itemA.Item.MateriaSlotCount);
 
         // map bonus value to type for comparison
-        var bonusMapA = GetItemStats(itemA);
-        var bonusMapB = GetItemStats(itemB);
+        var bonusMapA = BonusMap(itemA);
+        var bonusMapB = BonusMap(itemB);
 
-        bonusMapA = BonusMapA(bonusMapA, itemA);
-        bonusMapB = BonusMapB(bonusMapB, itemB);
-
-        var bonusTypes = new HashSet<uint>();
-        bonusTypes = BonusTypes(bonusTypes, bonusMapA, bonusMapB);
+        var bonusMapKeys = equipped ? bonusMapA.Keys.Union(bonusMapB.Keys) : bonusMapB.Keys.Union(bonusMapA.Keys);
+        var bonusTypes = new HashSet<uint>(bonusMapKeys);
 
         foreach (var bonusType in bonusTypes)
         {
@@ -138,82 +136,29 @@ internal partial class PluginUI : IDisposable
         }
     }
 
-    private static void DrawItemCompareHovered(InvItem itemA, InvItem itemB)
+    private static Dictionary<uint, short> BonusMap(InvItem item)
     {
-        DrawStat("Materia", itemB.Item.MateriaSlotCount - itemA.Item.MateriaSlotCount);
+        var bonusMap = GetItemStats(item);
 
-        // map bonus value to type for comparison
-        var bonusMapA = GetItemStats(itemA);
-        var bonusMapB = GetItemStats(itemB);
+        if (!bonusMap.TryAdd((uint)ItemBonusType.DEFENSE, (short)item.Item.DefensePhys))
+            bonusMap[(uint)ItemBonusType.DEFENSE] += (short)item.Item.DefensePhys;
 
-        bonusMapA = BonusMapA(bonusMapA, itemA);
-        bonusMapB = BonusMapB(bonusMapB, itemB);
+        if (!bonusMap.TryAdd((uint)ItemBonusType.MAGIC_DEFENSE, (short)item.Item.DefenseMag))
+            bonusMap[(uint)ItemBonusType.MAGIC_DEFENSE] += (short)item.Item.DefenseMag;
 
-        var bonusTypes = new HashSet<uint>();
-        bonusTypes = BonusTypes(bonusTypes, bonusMapA, bonusMapB);
+        if (!bonusMap.TryAdd((uint)ItemBonusType.PHYSICAL_DAMAGE, (short)item.Item.DamagePhys))
+            bonusMap[(uint)ItemBonusType.PHYSICAL_DAMAGE] += (short)item.Item.DamagePhys;
 
-        foreach (var bonusType in bonusTypes)
-        {
-            var valueA = bonusMapA.TryGetValue(bonusType, out var valA) ? valA : 0;
-            var valueB = bonusMapB.TryGetValue(bonusType, out var valB) ? valB : 0;
+        if (!bonusMap.TryAdd((uint)ItemBonusType.MAGIC_DAMAGE, (short)item.Item.DamageMag))
+            bonusMap[(uint)ItemBonusType.MAGIC_DAMAGE] += (short)item.Item.DamageMag;
 
-            DrawStat(BaseParamToName(bonusType), valueB - valueA);
-        }
-    }
+        if (!bonusMap.TryAdd((uint)ItemBonusType.BLOCK_STRENGTH, (short)item.Item.Block))
+            bonusMap[(uint)ItemBonusType.BLOCK_STRENGTH] += (short)item.Item.Block;
 
-    private static Dictionary<uint, short> BonusMapA(Dictionary<uint, short> bonusMapA, InvItem itemA)
-    {
-        if (!bonusMapA.TryAdd((uint)ItemBonusType.DEFENSE, (short)itemA.Item.DefensePhys))
-            bonusMapA[(uint)ItemBonusType.DEFENSE] += (short)itemA.Item.DefensePhys;
+        if (!bonusMap.TryAdd((uint)ItemBonusType.BLOCK_RATE, (short)item.Item.BlockRate))
+            bonusMap[(uint)ItemBonusType.BLOCK_RATE] += (short)item.Item.BlockRate;
 
-        if (!bonusMapA.TryAdd((uint)ItemBonusType.MAGIC_DEFENSE, (short)itemA.Item.DefenseMag))
-            bonusMapA[(uint)ItemBonusType.MAGIC_DEFENSE] += (short)itemA.Item.DefenseMag;
-
-        if (!bonusMapA.TryAdd((uint)ItemBonusType.PHYSICAL_DAMAGE, (short)itemA.Item.DamagePhys))
-            bonusMapA[(uint)ItemBonusType.PHYSICAL_DAMAGE] += (short)itemA.Item.DamagePhys;
-
-        if (!bonusMapA.TryAdd((uint)ItemBonusType.MAGIC_DAMAGE, (short)itemA.Item.DamageMag))
-            bonusMapA[(uint)ItemBonusType.MAGIC_DAMAGE] += (short)itemA.Item.DamageMag;
-
-        if (!bonusMapA.TryAdd((uint)ItemBonusType.BLOCK_STRENGTH, (short)itemA.Item.Block))
-            bonusMapA[(uint)ItemBonusType.BLOCK_STRENGTH] += (short)itemA.Item.Block;
-
-        if (!bonusMapA.TryAdd((uint)ItemBonusType.BLOCK_RATE, (short)itemA.Item.BlockRate))
-            bonusMapA[(uint)ItemBonusType.BLOCK_RATE] += (short)itemA.Item.BlockRate;
-
-        return bonusMapA;
-    }
-
-    private static Dictionary<uint, short> BonusMapB(Dictionary<uint, short> bonusMapB, InvItem itemB)
-    {
-        if (!bonusMapB.TryAdd((uint)ItemBonusType.DEFENSE, (short)itemB.Item.DefensePhys))
-            bonusMapB[(uint)ItemBonusType.DEFENSE] += (short)itemB.Item.DefensePhys;
-
-        if (!bonusMapB.TryAdd((uint)ItemBonusType.MAGIC_DEFENSE, (short)itemB.Item.DefenseMag))
-            bonusMapB[(uint)ItemBonusType.MAGIC_DEFENSE] += (short)itemB.Item.DefenseMag;
-
-        if (!bonusMapB.TryAdd((uint)ItemBonusType.PHYSICAL_DAMAGE, (short)itemB.Item.DamagePhys))
-            bonusMapB[(uint)ItemBonusType.PHYSICAL_DAMAGE] += (short)itemB.Item.DamagePhys;
-
-        if (!bonusMapB.TryAdd((uint)ItemBonusType.MAGIC_DAMAGE, (short)itemB.Item.DamageMag))
-            bonusMapB[(uint)ItemBonusType.MAGIC_DAMAGE] += (short)itemB.Item.DamageMag;
-
-        if (!bonusMapB.TryAdd((uint)ItemBonusType.BLOCK_STRENGTH, (short)itemB.Item.Block))
-            bonusMapB[(uint)ItemBonusType.BLOCK_STRENGTH] += (short)itemB.Item.Block;
-
-        if (!bonusMapB.TryAdd((uint)ItemBonusType.BLOCK_RATE, (short)itemB.Item.BlockRate))
-            bonusMapB[(uint)ItemBonusType.BLOCK_RATE] += (short)itemB.Item.BlockRate;
-
-        return bonusMapB;
-    }
-
-    private static HashSet<uint> BonusTypes(HashSet<uint> bonusTypes, Dictionary<uint, short> bonusMapA,
-        Dictionary<uint, short> bonusMapB)
-    {
-        bonusTypes.UnionWith(bonusMapA.Keys);
-        bonusTypes.UnionWith(bonusMapB.Keys);
-
-        return bonusTypes;
+        return bonusMap;
     }
 
     private static Dictionary<uint, short> GetItemStats(InvItem invItem)
@@ -250,11 +195,15 @@ internal partial class PluginUI : IDisposable
 
     private static void DrawStat(string name, int value)
     {
-        if (value != 0)
-        {
-            ImGui.TextColored(value > 0 ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudRed,
-                $"{name}: {(value > 0 ? $"+{value}" : $"{value}")}");
-        }
+        TextColored($"{name}: {(value > 0 ? $"+{value}" : $"{value}")}", value);
+    }
+    
+    private static void TextColored(string text, int value)
+    {
+        if (value == 0) return;
+
+        var color = value > 0 ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudRed;
+        ImGui.TextColored(color, text);
     }
 
     private static string BaseParamToName(uint baseParam)
