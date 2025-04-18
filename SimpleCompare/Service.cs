@@ -9,4 +9,5 @@ public class Service
     [PluginService] public static IDataManager Data { get; private set; } = null!;
     [PluginService] public static IGameGui GameGui { get; private set; } = null!;
     [PluginService] public static IPluginLog PluginLog { get; private set; } = null!;
+    [PluginService] public static IKeyState KeyState { get; private set; } = null!;
 }

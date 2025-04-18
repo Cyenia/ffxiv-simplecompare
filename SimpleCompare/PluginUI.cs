@@ -5,7 +5,7 @@ using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Utility;
 using static FFXIVClientStructs.FFXIV.Client.Game.InventoryItem;
 
@@ -17,7 +17,7 @@ internal class InvItem(Item item, bool isHq)
     public Item Item = item;
 }
 
-internal partial class PluginUI : IDisposable
+internal class PluginUI : IDisposable
 {
     private bool _visible;
 
@@ -32,22 +32,13 @@ internal partial class PluginUI : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    [LibraryImport("user32.dll")]
-    private static partial short GetKeyState(int keyCode);
-
     public void Draw()
     {
-        if ((GetKeyState(0x10) & 0x8000) == 0)
-        {
-            return;
-        }
-
+        if (!Service.KeyState[VirtualKey.SHIFT]) return;
         var hoveredItem = InvItem;
         if (hoveredItem == null) return;
-
         var inventoryType = GetInventoryType(hoveredItem.Item);
         if (inventoryType is InventoryType.ArmorySoulCrystal or InventoryType.Inventory1) return;
-
         var equippedItems = GetEquippedItemsByType(inventoryType);
         if (equippedItems.Count <= 0) return;
 
