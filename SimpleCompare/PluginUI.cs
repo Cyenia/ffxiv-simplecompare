@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Common.Math;
 using static FFXIVClientStructs.FFXIV.Client.Game.InventoryItem;
 
 namespace SimpleCompare;
@@ -43,20 +44,56 @@ internal class PluginUI : IDisposable
         if (equippedItems.Count <= 0) return;
 
         DrawItemList("SimpleCompare", hoveredItem, equippedItems, false);
-
-        var size = ImGui.GetWindowSize();
-        var mousePos = ImGui.GetMousePos();
-        mousePos.X -= size.X + 25;
-        ImGui.SetWindowPos(mousePos, ImGuiCond.Always);
+        var equipSize = ImGui.GetWindowSize();
 
         DrawItemList("SimpleCompare2", hoveredItem, equippedItems, true);
+        var compareSize = ImGui.GetWindowSize();
 
-        mousePos.X += size.X + 50;
-        ImGui.SetWindowPos(mousePos, ImGuiCond.Always);
+        var screenSize = ImGui.GetMainViewport().Size;
+        var mousePos = ImGui.GetMousePos();
+
+        var equipPos = new Vector2(mousePos.X - equipSize.X - 25, mousePos.Y);
+        var comparePos = new Vector2(mousePos.X + 25, mousePos.Y);
+        var equipLeftOutOfBounds = equipPos.X - 5 < 0;
+        var compareRightOutOfBounds = comparePos.X + compareSize.X + 5 > screenSize.X;
+
+        if (equipLeftOutOfBounds || compareRightOutOfBounds)
+        {
+            if (equipLeftOutOfBounds)
+            {
+                equipPos = comparePos;
+                comparePos.Y += equipSize.Y + 5;
+            }
+            else
+            {
+                comparePos = new Vector2(equipPos.X, equipPos.Y + equipSize.Y + 5);
+            }
+
+            var totalHeight = equipSize.Y + compareSize.Y + 10;
+            var overflowY = equipPos.Y + totalHeight - screenSize.Y;
+            if (overflowY > 0)
+            {
+                equipPos.Y -= overflowY;
+                comparePos.Y -= overflowY;
+            }
+        }
+        else
+        {
+            var minHeight = Math.Min(equipSize.Y, compareSize.Y) + 5;
+            var overflowY = mousePos.Y + minHeight - screenSize.Y;
+            if (overflowY > 0)
+            {
+                equipPos.Y -= overflowY;
+                comparePos.Y -= overflowY;
+            }
+        }
+
+        ImGui.SetWindowPos("SimpleCompare", equipPos, ImGuiCond.Always);
+        ImGui.SetWindowPos("SimpleCompare2", comparePos, ImGuiCond.Always);
 
         ImGui.End();
     }
-    
+
     private void DrawItemList(string windowName, InvItem hoveredItem, List<InvItem> equippedItems, bool hovered)
     {
         if (!ImGui.Begin(windowName, ref _visible, WindowFlags)) return;
@@ -188,7 +225,7 @@ internal class PluginUI : IDisposable
     {
         TextColored($"{name}: {(value > 0 ? $"+{value}" : $"{value}")}", value);
     }
-    
+
     private static void TextColored(string text, int value)
     {
         if (value == 0) return;
