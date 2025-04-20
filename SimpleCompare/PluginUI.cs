@@ -5,9 +5,9 @@ using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Utility;
-using FFXIVClientStructs.FFXIV.Common.Math;
 using static FFXIVClientStructs.FFXIV.Client.Game.InventoryItem;
 
 namespace SimpleCompare;
@@ -43,11 +43,9 @@ internal class PluginUI : IDisposable
         var equippedItems = GetEquippedItemsByType(inventoryType);
         if (equippedItems.Count <= 0) return;
 
-        DrawItemList("SimpleCompare", hoveredItem, equippedItems, false);
-        var equipSize = ImGui.GetWindowSize();
+        var equipSize = DrawItemList("SimpleCompare", hoveredItem, equippedItems, false);
 
-        DrawItemList("SimpleCompare2", hoveredItem, equippedItems, true);
-        var compareSize = ImGui.GetWindowSize();
+        var compareSize = DrawItemList("SimpleCompare2", hoveredItem, equippedItems, true);
 
         var screenSize = ImGui.GetMainViewport().Size;
         var mousePos = ImGui.GetMousePos();
@@ -90,13 +88,15 @@ internal class PluginUI : IDisposable
 
         ImGui.SetWindowPos("SimpleCompare", equipPos, ImGuiCond.Always);
         ImGui.SetWindowPos("SimpleCompare2", comparePos, ImGuiCond.Always);
-
-        ImGui.End();
     }
 
-    private void DrawItemList(string windowName, InvItem hoveredItem, List<InvItem> equippedItems, bool hovered)
+    private Vector2 DrawItemList(string windowName, InvItem hoveredItem, List<InvItem> equippedItems, bool hovered)
     {
-        if (!ImGui.Begin(windowName, ref _visible, WindowFlags)) return;
+        if (!ImGui.Begin(windowName, ref _visible, WindowFlags))
+        {
+            ImGui.End();
+            return Vector2.Zero;
+        }
 
         for (var i = 0; i < equippedItems.Count; i++)
         {
@@ -119,6 +119,12 @@ internal class PluginUI : IDisposable
             if (i + 1 < equippedItems.Count)
                 ImGui.Separator();
         }
+
+        var size = ImGui.GetWindowSize();
+        
+        ImGui.End();
+
+        return size;
     }
 
     private static List<InvItem> GetEquippedItemsByType(InventoryType inventoryType)
