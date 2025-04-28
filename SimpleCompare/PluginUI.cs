@@ -21,6 +21,7 @@ internal class InvItem(Item item, bool isHq)
 internal class PluginUI : IDisposable
 {
     private bool _visible;
+    private int _statDiff;
 
     private const ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoDecoration |
                                                  ImGuiWindowFlags.NoBringToFrontOnFocus |
@@ -111,13 +112,17 @@ internal class PluginUI : IDisposable
             ImGui.SameLine();
             TextColored($"(iLvl {(hovered ? hoveredItem : item).Item.LevelItem.RowId})", iLvlDiff, true);
 
+            _statDiff = 0;
             if (hovered)
                 DrawItemCompare(hoveredItem, item, false);
             else
                 DrawItemCompare(item, hoveredItem);
 
-            if (i + 1 < equippedItems.Count)
+            if (_statDiff == 0)
+            {
                 ImGui.Separator();
+                ImGui.TextUnformatted("There's no difference");
+            }
         }
     }
 
@@ -221,8 +226,10 @@ internal class PluginUI : IDisposable
         return result;
     }
 
-    private static void DrawStat(string name, int value)
+    private void DrawStat(string name, int value)
     {
+        if(_statDiff == 0 && value != 0) ImGui.Separator();
+        if(value != 0) _statDiff++;
         TextColored($"{name}: {(value > 0 ? $"+{value}" : $"{value}")}", value);
     }
 
