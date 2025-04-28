@@ -109,7 +109,7 @@ internal class PluginUI : IDisposable
                 ? $"{hoveredItem.Item.Name.ExtractText().StripSoftHyphen()}"
                 : $"Equipped: {item.Item.Name.ExtractText().StripSoftHyphen()}");
             ImGui.SameLine();
-            TextColored($"(iLvl {(hovered ? hoveredItem : item).Item.LevelItem.RowId})", iLvlDiff);
+            TextColored($"(iLvl {(hovered ? hoveredItem : item).Item.LevelItem.RowId})", iLvlDiff, true);
 
             if (hovered)
                 DrawItemCompare(hoveredItem, item, false);
@@ -144,7 +144,7 @@ internal class PluginUI : IDisposable
         return items;
     }
 
-    private static void DrawItemCompare(InvItem itemA, InvItem itemB, bool equipped = true)
+    private void DrawItemCompare(InvItem itemA, InvItem itemB, bool equipped = true)
     {
         DrawStat("Materia", itemB.Item.MateriaSlotCount - itemA.Item.MateriaSlotCount);
 
@@ -226,9 +226,13 @@ internal class PluginUI : IDisposable
         TextColored($"{name}: {(value > 0 ? $"+{value}" : $"{value}")}", value);
     }
 
-    private static void TextColored(string text, int value)
+    private static void TextColored(string text, int value, bool iLvl = false)
     {
-        if (value == 0) return;
+        if (value == 0)
+        {
+            if (iLvl) ImGui.TextUnformatted(text);
+            return;
+        }
 
         var color = value > 0 ? ImGuiColors.ParsedGreen : ImGuiColors.DalamudRed;
         ImGui.TextColored(color, text);
