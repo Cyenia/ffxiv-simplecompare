@@ -106,6 +106,11 @@ internal class PluginUI : IDisposable
                 ? (int)(hoveredItem.Item.LevelItem.RowId - item.Item.LevelItem.RowId)
                 : (int)(item.Item.LevelItem.RowId - hoveredItem.Item.LevelItem.RowId);
 
+            if (equippedItems.Count > 1)
+            {
+                ImGui.Text($"{i + 1}:");
+                ImGui.SameLine();
+            }
             ImGui.Text(hovered
                 ? $"{hoveredItem.Item.Name.ExtractText().StripSoftHyphen()}"
                 : $"Equipped: {item.Item.Name.ExtractText().StripSoftHyphen()}");
@@ -123,6 +128,10 @@ internal class PluginUI : IDisposable
                 ImGui.Separator();
                 ImGui.TextUnformatted("There's no difference");
             }
+
+            if (i + 1 >= equippedItems.Count) continue;
+            
+            ImGui.NewLine();
         }
     }
 
