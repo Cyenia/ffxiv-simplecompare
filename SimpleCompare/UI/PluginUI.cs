@@ -48,7 +48,7 @@ internal class PluginUI : IDisposable
         var hoveredItem = HoveredItem;
         if (hoveredItem == null) return;
         var inventoryType = InventoryHelper.GetInventoryType(hoveredItem.Item);
-        if (inventoryType is InventoryType.ArmorySoulCrystal or InventoryType.Inventory1) return;
+        if (inventoryType is InventoryType.Invalid) return;
         var equippedItems = InventoryHelper.GetEquippedItemsByType(inventoryType);
         if (equippedItems.Count <= 0) return;
 

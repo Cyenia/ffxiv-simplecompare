@@ -64,8 +64,7 @@ internal static class InventoryHelper
             (c => c.Neck, InventoryType.ArmoryNeck),
             (c => c.Wrists, InventoryType.ArmoryWrist),
             (c => c.FingerL, InventoryType.ArmoryRings),
-            (c => c.FingerR, InventoryType.ArmoryRings),
-            (c => c.SoulCrystal, InventoryType.ArmorySoulCrystal)
+            (c => c.FingerR, InventoryType.ArmoryRings)
         };
 
         var category = item.EquipSlotCategory.Value;
