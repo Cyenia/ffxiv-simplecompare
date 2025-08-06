@@ -160,7 +160,7 @@ internal class PluginUI : IDisposable
     /// <param name="equipped">Indicates whether the comparison is for equipped items.</param>
     private void DrawItemCompare(InventoryItem itemA, InventoryItem itemB, bool equipped = true)
     {
-        DrawStat("Materia", itemB.Item.MateriaSlotCount - itemA.Item.MateriaSlotCount);
+        DrawStat("Materia", itemA.Item.MateriaSlotCount - itemB.Item.MateriaSlotCount);
 
         // Map bonus value to type for comparison
         var bonusMapA = ItemComparer.BonusMap(itemA);
