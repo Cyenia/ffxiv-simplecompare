@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/13.0.0">
+<Project Sdk="Dalamud.NET.Sdk/14.0.0">
     <PropertyGroup>
         <Authors>Cyenia, 53m1k0l0n, rennerdo30</Authors>
-        <Version>2.1.1.0</Version>
+        <Version>2.1.2.0</Version>
     </PropertyGroup>
 </Project>
